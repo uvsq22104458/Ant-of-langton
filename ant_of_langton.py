@@ -2,13 +2,13 @@
 # importing modules #
 #####################
 import tkinter as tk
-from functools import partial
 
 ######################
 # Defining constants #
 ######################
-WIDTH = 1000
-HEIGHT = 1000
+WIDTH = 800
+HEIGHT = 800
+MAX_SCALE = 200
 ####################
 # Global variables #
 ####################
@@ -21,10 +21,9 @@ grid_GUI = [[0]*grid_scale for _ in range(grid_scale)]
 #############
 
 
-def ant():
+def ant(root, canvas):
     '''Ant of Langton, it can moves'''
     x0, y0, x1, y1 = 0, 0, 0, 0
-    pass
 
 
 def draw_GUI(root, canvas):
@@ -42,12 +41,14 @@ def draw_GUI(root, canvas):
 
 def play():
     '''A button'''
-    pass
+    global play_on
+    play_on = True
 
 
 def pause():
     '''A button'''
-    pass
+    global play_on
+    play_on = False
 
 
 def next():
@@ -70,31 +71,33 @@ def load():
     pass
 
 
-def speed_step():
-    '''A button'''
-    pass
-
-
 def speed_step(int):
     '''A button'''
+    global text_entry_speed, speed
+    speed = text_entry_speed.get()
     text_entry_speed.set(int)
 
 
 def entry_grid_scale(int, root, canvas):
-    '''A button'''
+    '''Changes the scale of the grid'''
     global text_entry_scale, offset_grid, grid_scale, grid, grid_GUI
-    grid_scale = text_entry_scale.get()
+    new_scale = text_entry_scale.get()
+    if new_scale > MAX_SCALE:
+        grid_scale = MAX_SCALE
+    else:
+        grid_scale = new_scale
     offset_grid = WIDTH/grid_scale
     grid = [[0]*grid_scale for _ in range(grid_scale)]
     grid_GUI = [[0]*grid_scale for _ in range(grid_scale)]
     print(grid_scale)
-    text_entry_scale.set(int)
     draw_GUI(root, canvas)
+    text_entry_scale.set(int)
 
 
 def GUI_widgets(root, canvas):
     '''Graphic interface using tkinter with buttons and canvas'''
     global text_entry_scale, text_entry_speed
+
     # Labelframe
     labelframe_speed = tk.LabelFrame(root,
                                      text='Changes the speed of the ants')
@@ -118,7 +121,8 @@ def GUI_widgets(root, canvas):
     # Entry
     speed_entry = tk.Entry(labelframe_speed, textvariable=text_entry_speed)
     scale_text = tk.Entry(labelframe_scale, textvariable=text_entry_scale)
-
+    # Bind
+    canvas.bind('<Button-2>', ant(root, canvas))
     # widget placement
     canvas.grid(column=1, row=1, columnspan=15)
     play_button.grid(row=0, column=1)
