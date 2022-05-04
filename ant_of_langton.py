@@ -9,9 +9,12 @@ from functools import partial
 WIDTH = 800
 HEIGHT = 800
 MAX_SCALE = 200
-root = tk.Tk()
-root.title("Cellular automaton: Ant Of Langdon")
-canvas = tk.Canvas(root, width=WIDTH, height=HEIGHT)
+UP, DOWN, LEFT, RIGHT = 0, 1, 2, 3
+ROTATE_LEFT = (LEFT, RIGHT, DOWN, UP)
+ROTATE_RIGHT = (RIGHT, LEFT, UP, DOWN)
+COLORS = ('white', 'black')
+# direction = UP
+# direction_rotate_left = ROTATE_LEFT[direction]
 ####################
 # Global variables #
 ####################
@@ -20,13 +23,21 @@ offset_grid = WIDTH/grid_scale
 grid = [[0]*grid_scale for _ in range(grid_scale)]
 grid_GUI = [[0]*grid_scale for _ in range(grid_scale)]
 has_stopped = True
+ants = []
+root = tk.Tk()
+root.title("Cellular automaton: Ant Of Langdon")
+canvas = tk.Canvas(root, width=WIDTH, height=HEIGHT)
 #############
 # Functions #
 #############
 
 
-def create_ant():
+def create_ant(x, y):
     '''Ant of Langton, it can moves on the grid'''
+    global ants
+    ant = (y, x, RIGHT)
+    ants.append(ant)
+    return ant
 
 
 def draw_GUI():
@@ -38,19 +49,24 @@ def draw_GUI():
         for j in range(grid_scale):
             grid_GUI[i][j] = canvas.create_rectangle(
                 (offset_grid*j, y0), ((offset_grid*j)+offset_grid, y1),
-                fill='white' if grid[i][j] == 0 else 'black', outline='black')
+                fill=COLORS[grid[i][j]], outline='black')
     print(grid_GUI)
+
+
+def update_GUI(ant):
+    y, x, _ = ant
+    canvas.itemconfig(grid_GUI[y][x], fill='red')
 
 
 def clicked(event):
     ''''''
-    x, y = event.x, event.y
-    for y in range(grid_scale):
-        for x in range(grid_scale):
-            if x and y:
-                grid[y][x] = 1
+    global offset_grid, ants
+    x, y = int(event.x // offset_grid), int(event.y // offset_grid)
     print(x, y)
-    draw_GUI()
+    grid[y][x] = 1
+    ant = create_ant(x, y)
+    update_GUI(ant)
+    print(ants)
 
 
 def play():
@@ -92,7 +108,7 @@ def speed_step(int):
 
 def entry_grid_scale(int):
     '''Changes the scale of the grid'''
-    global text_entry_scale, offset_grid, grid_scale, grid, grid_GUI
+    global text_entry_scale, offset_grid, grid_scale, grid, grid_GUI, ants
     new_scale = text_entry_scale.get()
     if new_scale > MAX_SCALE:
         grid_scale = MAX_SCALE
@@ -101,6 +117,7 @@ def entry_grid_scale(int):
     offset_grid = WIDTH/grid_scale
     grid = [[0]*grid_scale for _ in range(grid_scale)]
     grid_GUI = [[0]*grid_scale for _ in range(grid_scale)]
+    ants = []
     print(grid_scale)
     draw_GUI()
     text_entry_scale.set(int)
