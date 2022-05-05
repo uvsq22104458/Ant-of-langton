@@ -2,17 +2,19 @@
 # importing modules #
 #####################
 import tkinter as tk
-from functools import partial
 ######################
 # Defining constants #
 ######################
 WIDTH = 800
 HEIGHT = 800
 MAX_SCALE = 200
+# ant direction and rotation
 UP, DOWN, LEFT, RIGHT = 0, 1, 2, 3
 ROTATE_LEFT = (LEFT, RIGHT, DOWN, UP)
 ROTATE_RIGHT = (RIGHT, LEFT, UP, DOWN)
+MOVE = ((-1, 0), (1, 0), (0, -1), (0, 1))
 COLORS = ('white', 'black')
+WHITE, BLACK = 0, 1
 # direction = UP
 # direction_rotate_left = ROTATE_LEFT[direction]
 ####################
@@ -20,8 +22,8 @@ COLORS = ('white', 'black')
 ####################
 grid_scale = 6
 offset_grid = WIDTH/grid_scale
-grid = [[0]*grid_scale for _ in range(grid_scale)]
-grid_GUI = [[0]*grid_scale for _ in range(grid_scale)]
+grid = [[WHITE]*grid_scale for _ in range(grid_scale)]
+grid_GUI = [[WHITE]*grid_scale for _ in range(grid_scale)]
 has_stopped = True
 ants = []
 root = tk.Tk()
@@ -32,12 +34,33 @@ canvas = tk.Canvas(root, width=WIDTH, height=HEIGHT)
 #############
 
 
-def create_ant(x, y):
+def create_ant(y, x):
     '''Ant of Langton, it can moves on the grid'''
     global ants
     ant = (y, x, RIGHT)
     ants.append(ant)
-    return ant
+
+
+def rules():
+    ''''''
+    global ants, grid
+    for ant in ants:
+        y, x, direction = ant
+        if grid[y][x] == BLACK:
+            new_direction = ROTATE_LEFT[direction]
+            grid[y][x] = WHITE
+            update_GUI(y, x, 'white')
+            offset_y, offset_x = MOVE[new_direction]
+            new_y, new_x = y+offset_y, x+offset_x
+            update_GUI(new_y, new_x, 'red')
+        else:
+            new_direction = ROTATE_RIGHT[direction]
+            grid[y][x] = BLACK
+            update_GUI(y, x, 'black')
+            offset_y, offset_x = MOVE[new_direction]
+            new_y, new_x = y+offset_y, x+offset_x
+            update_GUI(new_y, new_x, 'red')
+        # y, x, direction = new_y, new_x, new_direction
 
 
 def draw_GUI():
@@ -50,22 +73,23 @@ def draw_GUI():
             grid_GUI[i][j] = canvas.create_rectangle(
                 (offset_grid*j, y0), ((offset_grid*j)+offset_grid, y1),
                 fill=COLORS[grid[i][j]], outline='black')
-    print(grid_GUI)
+    # print(grid_GUI)
 
 
-def update_GUI(ant):
-    y, x, _ = ant
-    canvas.itemconfig(grid_GUI[y][x], fill='red')
+def update_GUI(y, x, color):
+    canvas.itemconfig(grid_GUI[y][x], fill=color)
 
 
 def clicked(event):
     ''''''
     global offset_grid, ants
     x, y = int(event.x // offset_grid), int(event.y // offset_grid)
-    print(x, y)
-    grid[y][x] = 1
-    ant = create_ant(x, y)
-    update_GUI(ant)
+    # print(x, y)
+    if any((True for ant in ants if ant[0] == y and ant[1] == x)):
+        return
+    create_ant(y, x)
+    update_GUI(y, x, 'red')
+    rules()
     print(ants)
 
 
@@ -115,8 +139,8 @@ def entry_grid_scale(int):
     else:
         grid_scale = new_scale
     offset_grid = WIDTH/grid_scale
-    grid = [[0]*grid_scale for _ in range(grid_scale)]
-    grid_GUI = [[0]*grid_scale for _ in range(grid_scale)]
+    grid = [[WHITE]*grid_scale for _ in range(grid_scale)]
+    grid_GUI = [[WHITE]*grid_scale for _ in range(grid_scale)]
     ants = []
     print(grid_scale)
     draw_GUI()
