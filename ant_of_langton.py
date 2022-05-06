@@ -16,17 +16,15 @@ ROTATE_RIGHT = (RIGHT, LEFT, UP, DOWN)
 MOVE = ((-1, 0), (1, 0), (0, -1), (0, 1))
 COLORS = ('white', 'black')
 WHITE, BLACK = 0, 1
-# direction = UP
-# direction_rotate_left = ROTATE_LEFT[direction]
 ####################
 # Global variables #
 ####################
-grid_scale = 6
+grid_scale = 50
 offset_grid = WIDTH/grid_scale
 grid = [[WHITE]*grid_scale for _ in range(grid_scale)]
 grid_GUI = [[WHITE]*grid_scale for _ in range(grid_scale)]
 paused = True
-speed = 1
+delay_value = 100
 ants = []
 root = tk.Tk()
 root.title("Cellular automaton: Ant Of Langdon")
@@ -45,7 +43,7 @@ def create_ant(y, x):
 
 def rules():
     ''''''
-    global ants, grid
+    global ants, grid, grid_scale
     for i, ant in enumerate(ants):
         y, x, direction = ant
         if grid[y][x] == BLACK:
@@ -54,6 +52,14 @@ def rules():
             update_GUI(y, x, 'white')
             offset_y, offset_x = MOVE[new_direction]
             new_y, new_x = y+offset_y, x+offset_x
+            if new_y >= grid_scale:
+                new_y = 0
+            if new_y < 0:
+                new_y = grid_scale
+            if new_x >= grid_scale:
+                new_x = 0
+            if new_x < 0:
+                new_x = grid_scale
             update_GUI(new_y, new_x, 'red')
         else:
             new_direction = ROTATE_RIGHT[direction]
@@ -61,15 +67,23 @@ def rules():
             update_GUI(y, x, 'black')
             offset_y, offset_x = MOVE[new_direction]
             new_y, new_x = y+offset_y, x+offset_x
+            if new_y >= grid_scale:
+                new_y = 0
+            if new_y < 0:
+                new_y = grid_scale
+            if new_x >= grid_scale:
+                new_x = 0
+            if new_x < 0:
+                new_x = grid_scale
             update_GUI(new_y, new_x, 'red')
         ants[i] = (new_y, new_x, new_direction)
 
 
 def iteration():
     ''''''
-    global id_after, speed
+    global id_after, delay_value
     rules()
-    id_after = canvas.after(speed, iteration)
+    id_after = canvas.after(delay_value, iteration)
 
 
 def draw_GUI():
@@ -115,7 +129,11 @@ def play():
 
 def next():
     '''A button'''
-    pass
+    global paused
+    if paused:
+        rules()
+    else:
+        return
 
 
 def back():
@@ -133,11 +151,11 @@ def load():
     pass
 
 
-def speed_step(int):
+def delay(int):
     '''A button'''
-    global text_entry_speed, speed
-    speed = text_entry_speed.get()
-    text_entry_speed.set(int)
+    global text_entry_delay, delay_value
+    delay_value = text_entry_delay.get()
+    text_entry_delay.set(int)
 
 
 def entry_grid_scale(int):
@@ -159,11 +177,11 @@ def entry_grid_scale(int):
 
 def GUI_widgets():
     '''Graphic interface using tkinter with buttons and canvas'''
-    global text_entry_scale, text_entry_speed, play_button, save_button
+    global text_entry_scale, text_entry_delay, play_button, save_button
 
     # Labelframe
-    labelframe_speed = tk.LabelFrame(root,
-                                     text='Changes the speed of the ants')
+    labelframe_delay = tk.LabelFrame(root,
+                                     text='Changes the delay of the ants')
     labelframe_scale = tk.LabelFrame(root,
                                      text='Changes the scale of the grid')
     # Buttons creation
@@ -175,13 +193,13 @@ def GUI_widgets():
     back_button = tk.Button(root, text='Back', command=back)
     scale_button = tk.Button(
         labelframe_scale, text='Set', command=lambda: entry_grid_scale(0))
-    speed_button = tk.Button(
-        labelframe_speed, text='Set', command=lambda: speed_step(0))
+    delay_button = tk.Button(
+        labelframe_delay, text='Set', command=lambda: delay(0))
     # IntVar
     text_entry_scale = tk.IntVar()
-    text_entry_speed = tk.IntVar()
+    text_entry_delay = tk.IntVar()
     # Entry
-    speed_entry = tk.Entry(labelframe_speed, textvariable=text_entry_speed)
+    delay_entry = tk.Entry(labelframe_delay, textvariable=text_entry_delay)
     scale_text = tk.Entry(labelframe_scale, textvariable=text_entry_scale)
     # widget placement
     canvas.grid(column=1, row=1, columnspan=15)
@@ -190,11 +208,11 @@ def GUI_widgets():
     back_button.grid(row=0, column=3)
     save_button.grid(row=0, column=4)
     load_button.grid(row=0, column=5)
-    speed_entry.grid(row=0, column=6)
-    speed_button.grid(row=0, column=7)
+    delay_entry.grid(row=0, column=6)
+    delay_button.grid(row=0, column=7)
     scale_text.grid(row=0, column=8)
     labelframe_scale.grid(row=0, column=9)
-    labelframe_speed.grid(row=0, column=7)
+    labelframe_delay.grid(row=0, column=7)
     scale_button.grid(row=0, column=9)
     quit_button.grid(row=0, column=15)
     # Bind
