@@ -2,13 +2,13 @@
 # importing modules #
 #####################
 import tkinter as tk
-from types import new_class
 ######################
 # Defining constants #
 ######################
 WIDTH = 800
 HEIGHT = 800
 MAX_SCALE = 200
+MAX_DELAY = 1000
 # ant direction and rotation
 UP, DOWN, LEFT, RIGHT = 0, 1, 2, 3
 ROTATE_LEFT = (LEFT, RIGHT, DOWN, UP)
@@ -55,11 +55,11 @@ def rules():
             if new_y >= grid_scale:
                 new_y = 0
             if new_y < 0:
-                new_y = grid_scale
+                new_y = grid_scale-1
             if new_x >= grid_scale:
                 new_x = 0
             if new_x < 0:
-                new_x = grid_scale
+                new_x = grid_scale-1
             update_GUI(new_y, new_x, 'red')
         else:
             new_direction = ROTATE_RIGHT[direction]
@@ -70,11 +70,11 @@ def rules():
             if new_y >= grid_scale:
                 new_y = 0
             if new_y < 0:
-                new_y = grid_scale
+                new_y = grid_scale-1
             if new_x >= grid_scale:
                 new_x = 0
             if new_x < 0:
-                new_x = grid_scale
+                new_x = grid_scale-1
             update_GUI(new_y, new_x, 'red')
         ants[i] = (new_y, new_x, new_direction)
 
@@ -100,6 +100,7 @@ def draw_GUI():
 
 
 def update_GUI(y, x, color):
+    ''''''
     canvas.itemconfig(grid_GUI[y][x], fill=color)
 
 
@@ -155,6 +156,8 @@ def delay(int):
     '''A button'''
     global text_entry_delay, delay_value
     delay_value = text_entry_delay.get()
+    if delay_value > MAX_DELAY:
+        delay_value = MAX_DELAY
     text_entry_delay.set(int)
 
 
