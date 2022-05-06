@@ -2,6 +2,7 @@
 # importing modules #
 #####################
 import tkinter as tk
+from types import new_class
 ######################
 # Defining constants #
 ######################
@@ -24,7 +25,8 @@ grid_scale = 6
 offset_grid = WIDTH/grid_scale
 grid = [[WHITE]*grid_scale for _ in range(grid_scale)]
 grid_GUI = [[WHITE]*grid_scale for _ in range(grid_scale)]
-has_stopped = True
+paused = True
+speed = 1
 ants = []
 root = tk.Tk()
 root.title("Cellular automaton: Ant Of Langdon")
@@ -44,7 +46,7 @@ def create_ant(y, x):
 def rules():
     ''''''
     global ants, grid
-    for ant in ants:
+    for i, ant in enumerate(ants):
         y, x, direction = ant
         if grid[y][x] == BLACK:
             new_direction = ROTATE_LEFT[direction]
@@ -60,7 +62,14 @@ def rules():
             offset_y, offset_x = MOVE[new_direction]
             new_y, new_x = y+offset_y, x+offset_x
             update_GUI(new_y, new_x, 'red')
-        # y, x, direction = new_y, new_x, new_direction
+        ants[i] = (new_y, new_x, new_direction)
+
+
+def iteration():
+    ''''''
+    global id_after, speed
+    rules()
+    id_after = canvas.after(speed, iteration)
 
 
 def draw_GUI():
@@ -72,7 +81,7 @@ def draw_GUI():
         for j in range(grid_scale):
             grid_GUI[i][j] = canvas.create_rectangle(
                 (offset_grid*j, y0), ((offset_grid*j)+offset_grid, y1),
-                fill=COLORS[grid[i][j]], outline='black')
+                fill=COLORS[grid[i][j]], outline='')
     # print(grid_GUI)
 
 
@@ -89,18 +98,19 @@ def clicked(event):
         return
     create_ant(y, x)
     update_GUI(y, x, 'red')
-    rules()
     print(ants)
 
 
 def play():
     '''Switch between Play or Pause if the button is clicked'''
-    global has_stopped
-    if has_stopped:
+    global paused, id_after
+    if paused:
         play_button.config(text="Pause")
+        iteration()
     else:
         play_button.config(text="Play")
-    has_stopped = not has_stopped
+        canvas.after_cancel(id_after)
+    paused = not paused
 
 
 def next():
