@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import filedialog as fd
 import os
 from os.path import exists
+from ast import literal_eval
 ######################
 # Defining constants #
 ######################
@@ -23,7 +24,7 @@ WHITE, BLACK = 0, 1
 # Global variables #
 ####################
 grid_scale = 50
-offset_grid = WIDTH/grid_scale
+offset_grid = WIDTH//grid_scale
 grid = [[WHITE]*grid_scale for _ in range(grid_scale)]
 grid_GUI = [[WHITE]*grid_scale for _ in range(grid_scale)]
 paused = True
@@ -37,8 +38,7 @@ directory_name = 'Saves'
 path = os.path.join(os.getcwd(), directory_name)
 # File creation
 counter = 0
-file_name = 'save%s.txt' % counter
-new_load = []
+file_name = f'save{counter}.txt'
 #############
 # Functions #
 #############
@@ -157,22 +157,17 @@ def save():
     for files in os.listdir(path):
         if files == file_name:
             counter += 1
-            file_name = 'save%s.txt' % counter
+            file_name = f'save{counter}.txt'
     with open(os.path.join(path, file_name), 'w') as file:
-        file.write(str(grid_scale))
-        file.write('\n')
-        file.write(str(offset_grid))
-        file.write('\n')
-        file.write(str(ants))
-        file.write('\n')
-        file.write(str(grid))
+        file.write(f'{grid_scale}\n{offset_grid}\n{ants}\n{grid}')
         file.close()
 
 
 def load():
     '''A button'''
-    global grid, grid_scale, ants, offset_grid, new_load
-    load_file = fd.askopenfilename(initialdir="/",
+    global grid, grid_scale, ants, offset_grid, grid_GUI
+    lines = []
+    load_file = fd.askopenfilename(initialdir=path,
                                    title="Select a save",
                                    filetypes=(("Text files",
                                                "*.txt*"),
@@ -183,14 +178,13 @@ def load():
         with open(os.path.join(path, load_file), 'r') as file:
             content = file.readlines()
         for line in content:
-            new_load.append(line)
-        print(new_load)
-        grid_scale = int(new_load[0])
-        offset_grid = float(new_load[1])
-        ants = new_load[2]
-        print(ants)
-        grid = new_load[3]
-        new_load = []
+            lines.append(line)
+        print(lines)
+        grid_scale = int(lines[0])
+        grid_GUI = [[WHITE]*grid_scale for _ in range(grid_scale)]
+        offset_grid = int(lines[1])
+        ants = literal_eval(lines[2])
+        grid = literal_eval(lines[3])
         draw_GUI()
 
 
@@ -211,7 +205,7 @@ def entry_grid_scale(int):
         grid_scale = MAX_SCALE
     else:
         grid_scale = new_scale
-    offset_grid = WIDTH/grid_scale
+    offset_grid = WIDTH//grid_scale
     grid = [[WHITE]*grid_scale for _ in range(grid_scale)]
     grid_GUI = [[WHITE]*grid_scale for _ in range(grid_scale)]
     ants = []
