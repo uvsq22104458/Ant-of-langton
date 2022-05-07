@@ -2,6 +2,9 @@
 # importing modules #
 #####################
 import tkinter as tk
+from tkinter import filedialog as fd
+import os
+from os.path import exists
 ######################
 # Defining constants #
 ######################
@@ -29,6 +32,13 @@ ants = []
 root = tk.Tk()
 root.title("Cellular automaton: Ant Of Langdon")
 canvas = tk.Canvas(root, width=WIDTH, height=HEIGHT)
+# Directory creation
+directory_name = 'Saves'
+path = os.path.join(os.getcwd(), directory_name)
+# File creation
+counter = 0
+file_name = 'save%s.txt' % counter
+new_load = []
 #############
 # Functions #
 #############
@@ -96,7 +106,6 @@ def draw_GUI():
             grid_GUI[i][j] = canvas.create_rectangle(
                 (offset_grid*j, y0), ((offset_grid*j)+offset_grid, y1),
                 fill=COLORS[grid[i][j]], outline='')
-    # print(grid_GUI)
 
 
 def update_GUI(y, x, color):
@@ -108,12 +117,10 @@ def clicked(event):
     ''''''
     global offset_grid, ants
     x, y = int(event.x // offset_grid), int(event.y // offset_grid)
-    # print(x, y)
     if any((True for ant in ants if ant[0] == y and ant[1] == x)):
         return
     create_ant(y, x)
     update_GUI(y, x, 'red')
-    print(ants)
 
 
 def play():
@@ -144,12 +151,47 @@ def back():
 
 def save():
     '''A button'''
-    pass
+    global counter, file_name, grid, grid_scale, ants, offset_grid
+    if not exists(path):
+        os.mkdir(path)
+    for files in os.listdir(path):
+        if files == file_name:
+            counter += 1
+            file_name = 'save%s.txt' % counter
+    with open(os.path.join(path, file_name), 'w') as file:
+        file.write(str(grid_scale))
+        file.write('\n')
+        file.write(str(offset_grid))
+        file.write('\n')
+        file.write(str(ants))
+        file.write('\n')
+        file.write(str(grid))
+        file.close()
 
 
 def load():
     '''A button'''
-    pass
+    global grid, grid_scale, ants, offset_grid, new_load
+    load_file = fd.askopenfilename(initialdir="/",
+                                   title="Select a save",
+                                   filetypes=(("Text files",
+                                               "*.txt*"),
+                                              ("all files",
+                                               "*.*")))
+    if load_file:
+        load_file = load_file[load_file.rfind('save'):]
+        with open(os.path.join(path, load_file), 'r') as file:
+            content = file.readlines()
+        for line in content:
+            new_load.append(line)
+        print(new_load)
+        grid_scale = int(new_load[0])
+        offset_grid = float(new_load[1])
+        ants = new_load[2]
+        print(ants)
+        grid = new_load[3]
+        new_load = []
+        draw_GUI()
 
 
 def delay(int):
@@ -173,7 +215,6 @@ def entry_grid_scale(int):
     grid = [[WHITE]*grid_scale for _ in range(grid_scale)]
     grid_GUI = [[WHITE]*grid_scale for _ in range(grid_scale)]
     ants = []
-    print(grid_scale)
     draw_GUI()
     text_entry_scale.set(int)
 
