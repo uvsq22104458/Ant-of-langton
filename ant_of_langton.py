@@ -29,6 +29,7 @@ grid = [[WHITE]*grid_scale for _ in range(grid_scale)]
 grid_GUI = [[WHITE]*grid_scale for _ in range(grid_scale)]
 paused = True
 delay_value = 100
+iteration_counter = 0
 ants = []
 root = tk.Tk()
 root.title("Cellular automaton: Ant Of Langdon")
@@ -37,8 +38,8 @@ canvas = tk.Canvas(root, width=WIDTH, height=HEIGHT)
 directory_name = 'Saves'
 path = os.path.join(os.getcwd(), directory_name)
 # File creation
-counter = 0
-file_name = f'save{counter}.txt'
+file_counter = 0
+file_name = f'save{file_counter}.txt'
 #############
 # Functions #
 #############
@@ -53,7 +54,7 @@ def create_ant(y, x):
 
 def rules():
     ''''''
-    global ants, grid, grid_scale
+    global ants, grid, grid_scale, iteration_counter
     for i, ant in enumerate(ants):
         y, x, direction = ant
         if grid[y][x] == BLACK:
@@ -87,6 +88,7 @@ def rules():
                 new_x = grid_scale-1
             update_GUI(new_y, new_x, 'red')
         ants[i] = (new_y, new_x, new_direction)
+        iteration_counter += 1
 
 
 def iteration():
@@ -138,26 +140,50 @@ def play():
 def next():
     '''A button'''
     global paused
-    if paused:
-        rules()
-    else:
+    if not paused:
         return
+    rules()
 
 
 def back():
-    '''A button'''
-    pass
+    '''Reverse rule'''
+    global ants, grid, grid_scale, paused, iteration_counter
+    if not paused or iteration_counter == 0:
+        return
+    for i, ant in enumerate(ants):
+        y, x, direction = ant
+        offset_y, offset_x = MOVE[direction]
+        new_y, new_x = y-offset_y, x-offset_x
+        if new_y >= grid_scale:
+            new_y = 0
+        if new_y < 0:
+            new_y = grid_scale-1
+        if new_x >= grid_scale:
+            new_x = 0
+        if new_x < 0:
+            new_x = grid_scale-1
+        update_GUI(y, x, COLORS[grid[y][x]])
+        if grid[new_y][new_x] == BLACK:
+            new_direction = ROTATE_LEFT[direction]
+            grid[new_y][new_x] = WHITE
+            update_GUI(new_y, new_x, 'red')
+        else:
+            new_direction = ROTATE_RIGHT[direction]
+            grid[new_y][new_x] = BLACK
+            update_GUI(new_y, new_x, 'red')
+        ants[i] = (new_y, new_x, new_direction)
+        iteration_counter -= 1
 
 
 def save():
     '''A button'''
-    global counter, file_name, grid, grid_scale, ants, offset_grid
+    global file_counter, file_name, grid, grid_scale, ants, offset_grid
     if not exists(path):
         os.mkdir(path)
     for files in os.listdir(path):
         if files == file_name:
-            counter += 1
-            file_name = f'save{counter}.txt'
+            file_counter += 1
+            file_name = f'save{file_counter}.txt'
     with open(os.path.join(path, file_name), 'w') as file:
         file.write(f'{grid_scale}\n{offset_grid}\n{ants}\n{grid}')
         file.close()
