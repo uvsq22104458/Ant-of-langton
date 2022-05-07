@@ -34,6 +34,8 @@ ants = []
 root = tk.Tk()
 root.title("Cellular automaton: Ant Of Langdon")
 canvas = tk.Canvas(root, width=WIDTH, height=HEIGHT)
+text_iteration_counter = tk.IntVar(
+    root, value=iteration_counter)
 # Directory creation
 directory_name = 'Saves'
 path = os.path.join(os.getcwd(), directory_name)
@@ -54,7 +56,7 @@ def create_ant(y, x):
 
 def rules():
     ''''''
-    global ants, grid, grid_scale, iteration_counter
+    global ants, grid, grid_scale, iteration_counter, text_iteration_counter
     for i, ant in enumerate(ants):
         y, x, direction = ant
         if grid[y][x] == BLACK:
@@ -89,6 +91,12 @@ def rules():
             update_GUI(new_y, new_x, 'red')
         ants[i] = (new_y, new_x, new_direction)
         iteration_counter += 1
+        update_value_counter()
+
+
+def update_value_counter():
+    ''''''
+    text_iteration_counter.set(iteration_counter)
 
 
 def iteration():
@@ -147,7 +155,7 @@ def next():
 
 def back():
     '''Reverse rule'''
-    global ants, grid, grid_scale, paused, iteration_counter
+    global ants, grid, grid_scale, paused, iteration_counter, text_iteration_counter
     if not paused or iteration_counter == 0:
         return
     for i, ant in enumerate(ants):
@@ -173,11 +181,12 @@ def back():
             update_GUI(new_y, new_x, 'red')
         ants[i] = (new_y, new_x, new_direction)
         iteration_counter -= 1
+        update_value_counter()
 
 
 def save():
     '''A button'''
-    global file_counter, file_name, grid, grid_scale, ants, offset_grid
+    global file_counter, file_name, grid, grid_scale, ants, offset_grid, iteration_counter
     if not exists(path):
         os.mkdir(path)
     for files in os.listdir(path):
@@ -185,13 +194,14 @@ def save():
             file_counter += 1
             file_name = f'save{file_counter}.txt'
     with open(os.path.join(path, file_name), 'w') as file:
-        file.write(f'{grid_scale}\n{offset_grid}\n{ants}\n{grid}')
+        file.write(
+            f'{grid_scale}\n{iteration_counter}\n{offset_grid}\n{ants}\n{grid}')
         file.close()
 
 
 def load():
     '''A button'''
-    global grid, grid_scale, ants, offset_grid, grid_GUI
+    global grid, grid_scale, ants, offset_grid, grid_GUI, iteration_counter
     lines = []
     load_file = fd.askopenfilename(initialdir=path,
                                    title="Select a save",
@@ -208,9 +218,11 @@ def load():
         print(lines)
         grid_scale = int(lines[0])
         grid_GUI = [[WHITE]*grid_scale for _ in range(grid_scale)]
-        offset_grid = int(lines[1])
-        ants = literal_eval(lines[2])
-        grid = literal_eval(lines[3])
+        iteration_counter = int(lines[1])
+        offset_grid = int(lines[2])
+        ants = literal_eval(lines[3])
+        grid = literal_eval(lines[4])
+        update_value_counter()
         draw_GUI()
 
 
@@ -241,7 +253,7 @@ def entry_grid_scale(int):
 
 def GUI_widgets():
     '''Graphic interface using tkinter with buttons and canvas'''
-    global text_entry_scale, text_entry_delay, play_button, save_button
+    global text_entry_scale, text_entry_delay, play_button, save_button, iteration_counter
 
     # Labelframe
     labelframe_delay = tk.LabelFrame(root,
@@ -262,11 +274,14 @@ def GUI_widgets():
     # IntVar
     text_entry_scale = tk.IntVar()
     text_entry_delay = tk.IntVar()
+    # Label
+    label_interation_counter = tk.Label(
+        root, textvariable=text_iteration_counter)
     # Entry
     delay_entry = tk.Entry(labelframe_delay, textvariable=text_entry_delay)
     scale_text = tk.Entry(labelframe_scale, textvariable=text_entry_scale)
     # widget placement
-    canvas.grid(column=1, row=1, columnspan=15)
+    canvas.grid(column=1, row=1, columnspan=15, rowspan=15)
     play_button.grid(row=0, column=1)
     next_button.grid(row=0, column=2)
     back_button.grid(row=0, column=3)
@@ -279,6 +294,7 @@ def GUI_widgets():
     labelframe_delay.grid(row=0, column=7)
     scale_button.grid(row=0, column=9)
     quit_button.grid(row=0, column=15)
+    label_interation_counter.grid(row=1, column=1)
     # Bind
     canvas.bind('<Button-1>', clicked)
 
