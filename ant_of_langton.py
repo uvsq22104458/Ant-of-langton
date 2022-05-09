@@ -1,4 +1,4 @@
-#####################
+####################
 # importing modules #
 #####################
 import tkinter as tk
@@ -17,6 +17,9 @@ MAX_DELAY = 1000
 UP, DOWN, LEFT, RIGHT = 0, 1, 2, 3
 ROTATE_LEFT = (LEFT, RIGHT, DOWN, UP)
 ROTATE_RIGHT = (RIGHT, LEFT, UP, DOWN)
+RED, GREEN, YELLOW, CYAN = 1, 2, 3, 0
+ANT_COLORS = (RED, GREEN, YELLOW, CYAN)
+ANT_COULEURS = ('RED', 'GREEN', 'YELLOW', 'CYAN')
 MOVE = ((-1, 0), (1, 0), (0, -1), (0, 1))
 COLORS = ('white', 'black')
 WHITE, BLACK = 0, 1
@@ -28,6 +31,7 @@ offset_grid = WIDTH//grid_scale
 grid = [[WHITE]*grid_scale for _ in range(grid_scale)]
 grid_GUI = [[WHITE]*grid_scale for _ in range(grid_scale)]
 paused = True
+grille_active = True
 delay_value = 100
 iteration_counter = 0
 ants = []
@@ -50,15 +54,15 @@ file_name = f'save{file_counter}.txt'
 def create_ant(y, x):
     '''Ant of Langton, it can moves on the grid'''
     global ants
-    ant = (y, x, RIGHT)
+    ant = (y, x, RIGHT,RED)
     ants.append(ant)
 
 
 def rules():
-    ''''''
+    '''Règles de base'''
     global ants, grid, grid_scale, iteration_counter, text_iteration_counter
     for i, ant in enumerate(ants):
-        y, x, direction = ant
+        y, x, direction, couleur = ant
         if grid[y][x] == BLACK:
             new_direction = ROTATE_LEFT[direction]
             grid[y][x] = WHITE
@@ -73,7 +77,8 @@ def rules():
                 new_x = 0
             if new_x < 0:
                 new_x = grid_scale-1
-            update_GUI(new_y, new_x, 'red')
+            new_color = ANT_COLORS[couleur]
+            update_GUI(new_y, new_x,ANT_COULEURS[new_color])
         else:
             new_direction = ROTATE_RIGHT[direction]
             grid[y][x] = BLACK
@@ -88,8 +93,9 @@ def rules():
                 new_x = 0
             if new_x < 0:
                 new_x = grid_scale-1
-            update_GUI(new_y, new_x, 'red')
-        ants[i] = (new_y, new_x, new_direction)
+            new_color = ANT_COLORS[couleur]
+            update_GUI(new_y, new_x, ANT_COULEURS[new_color])
+        ants[i] = (new_y, new_x, new_direction, new_color)
         iteration_counter += 1
         update_value_counter()
 
@@ -106,7 +112,7 @@ def iteration():
     id_after = canvas.after(delay_value, iteration)
 
 
-def draw_GUI():
+def draw_GUI(grille_act):
     '''Create a grid in the canvas'''
     global grid_GUI, grid
     for i in range(grid_scale):
@@ -115,7 +121,7 @@ def draw_GUI():
         for j in range(grid_scale):
             grid_GUI[i][j] = canvas.create_rectangle(
                 (offset_grid*j, y0), ((offset_grid*j)+offset_grid, y1),
-                fill=COLORS[grid[i][j]], outline='')
+                fill=COLORS[grid[i][j]], outline=grille_act)
 
 
 def update_GUI(y, x, color):
@@ -144,6 +150,14 @@ def play():
         canvas.after_cancel(id_after)
     paused = not paused
 
+def activ_grid():
+    global grille_active
+    if grille_active:
+        outline='#fb0'
+    else:
+        outline=''
+    draw_GUI(outline)
+    grille_active = not grille_active
 
 def next():
     '''A button'''
@@ -223,7 +237,7 @@ def load():
         ants = literal_eval(lines[3])
         grid = literal_eval(lines[4])
         update_value_counter()
-        draw_GUI()
+        draw_GUI('')
 
 
 def delay(int):
@@ -247,7 +261,7 @@ def entry_grid_scale(int):
     grid = [[WHITE]*grid_scale for _ in range(grid_scale)]
     grid_GUI = [[WHITE]*grid_scale for _ in range(grid_scale)]
     ants = []
-    draw_GUI()
+    draw_GUI('')
     text_entry_scale.set(int)
 
 
@@ -267,6 +281,7 @@ def GUI_widgets():
     save_button = tk.Button(root, text='Save', command=save)
     load_button = tk.Button(root, text='Load', command=load)
     back_button = tk.Button(root, text='Back', command=back)
+    grid_button = tk.Button(root, text='grille', command=activ_grid)
     scale_button = tk.Button(
         labelframe_scale, text='Set', command=lambda: entry_grid_scale(0))
     delay_button = tk.Button(
@@ -289,8 +304,9 @@ def GUI_widgets():
     load_button.grid(row=0, column=5)
     delay_entry.grid(row=0, column=6)
     delay_button.grid(row=0, column=7)
-    scale_text.grid(row=0, column=8)
-    labelframe_scale.grid(row=0, column=9)
+    grid_button.grid(row=0, column=8)
+    scale_text.grid(row=0, column=9)
+    labelframe_scale.grid(row=0, column=10)
     labelframe_delay.grid(row=0, column=7)
     scale_button.grid(row=0, column=9)
     quit_button.grid(row=0, column=15)
@@ -305,7 +321,7 @@ def GUI_widgets():
 
 def main():
     '''Main program with tkinter instructions'''
-    draw_GUI()
+    draw_GUI('')
     GUI_widgets()
     root.mainloop()
 
