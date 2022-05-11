@@ -6,7 +6,8 @@ Many AFAGHPOUR
 Perrine ILARY**
 >>[Ant of Langton project](https://github.com/uvsq22104458/ant_of_langton_project)
 ------------------------------------------------------------------
-![Ant of Langton](https://media4.giphy.com/media/y3bYxboJL1YL5k9biK/giphy.gif?cid=790b761173be56ccf2fc87cc6fc86b9eac1b91fa3199bbcf&rid=giphy.gif&ct=g 'Ant')
+<p align='center'>
+    <img src='https://media4.giphy.com/media/y3bYxboJL1YL5k9biK/giphy.gif?cid=790b761173be56ccf2fc87cc6fc86b9eac1b91fa3199bbcf&rid=giphy.gif&ct=g'>
 
 > 💠 ***```The Langton Ant is a cellular automaton composed of a grid of two dimensions and an ant.```*** 💠
 
